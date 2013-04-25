@@ -11,7 +11,7 @@ namespace PasswordProtection
     /// </summary>
     public partial class MainWindow : Window
     {
-        private String hexID = ".{2559a1f2-21d7-11d4-bdaf-00c04f60b9f0}";//class ID from the Windows registry, it saves the file with ".bat" extension
+        private String hexID = ".{2559a1f2-21d7-11d4-bdaf-00c04f60b9f0}";//class ID from the Windows registry, it saves the file with ".bat" extension,CLSID – class identifier; (Stored in the registry at HKEY_CLASSES_ROOT\CLSID)
         private String directory = "C:\\RR";
         private String dirPin = "\\pin.xml";
 
@@ -41,6 +41,8 @@ namespace PasswordProtection
 
                 if (!d.Root.Equals(d.Parent.FullName))
                     d.MoveTo(d.Parent.FullName + "\\" + d.Name + hexID);
+
+                doNotModifyFolder();//do not allow to modify
             }
         }
 
@@ -52,7 +54,7 @@ namespace PasswordProtection
             bool s = checkpassword(selectedpath);
             if (s)
             {
-                modifyFolder();
+                modifyFolder();//allow to modify
 
                 File.Delete(selectedpath + dirPin);
                 d.MoveTo(selectedpath.Substring(0, selectedpath.LastIndexOf(".")));
@@ -100,14 +102,16 @@ namespace PasswordProtection
             return false;
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void btnAdd(object sender, RoutedEventArgs e)
         {
-            if (!Directory.Exists(directory + hexID))
+            if (!Directory.Exists(directory + hexID + "\\Rahul"))
             {
                 DirectoryInfo di = Directory.CreateDirectory(directory + hexID + "\\Rahul");
             }
 
-            doNotModifyFolder();
+            //modifyFolder();
+
+            //doNotModifyFolder();
         }
 
         private void doNotModifyFolder()//do not allow to modify
@@ -115,11 +119,11 @@ namespace PasswordProtection
             try
             {
                 string adminUserName = Environment.UserName;
-                DirectorySecurity ds = Directory.GetAccessControl(directory + hexID);
-                FileSystemAccessRule fsa = new FileSystemAccessRule(adminUserName, FileSystemRights.Modify, AccessControlType.Deny);
+                DirectorySecurity dirService = Directory.GetAccessControl(directory + hexID);
+                FileSystemAccessRule fsa = new FileSystemAccessRule(adminUserName, FileSystemRights.Modify , AccessControlType.Deny);
 
-                ds.AddAccessRule(fsa);//add
-                Directory.SetAccessControl(directory + hexID, ds);
+                dirService.AddAccessRule(fsa);//add
+                Directory.SetAccessControl(directory + hexID, dirService);
             }
             catch (Exception)
             {
@@ -132,16 +136,39 @@ namespace PasswordProtection
             try
             {
                 string adminUserName = Environment.UserName;
-                DirectorySecurity ds = Directory.GetAccessControl(directory + hexID);
-                FileSystemAccessRule fsa = new FileSystemAccessRule(adminUserName, FileSystemRights.Modify, AccessControlType.Deny);
+                DirectorySecurity dirService = Directory.GetAccessControl(directory + hexID);
+                FileSystemAccessRule fsa = new FileSystemAccessRule(adminUserName, FileSystemRights.Modify , AccessControlType.Deny);
 
-                ds.RemoveAccessRule(fsa);//remove
-                Directory.SetAccessControl(directory + hexID, ds);
+                dirService.RemoveAccessRule(fsa);//remove
+                Directory.SetAccessControl(directory + hexID, dirService);
             }
             catch (Exception)
             {
 
             }
+        }
+
+        private void btnChangePassword(object sender, RoutedEventArgs e)
+        {
+            DirectoryInfo d = new DirectoryInfo(directory + hexID);
+            String selectedpath = d.Parent.FullName + d.Name;
+
+             bool s = checkpassword(selectedpath);
+             if (s)
+             {
+                 XmlDocument xmldoc = new XmlDocument();
+                 xmldoc.Load(selectedpath + dirPin);
+                 XmlNode pinNode = xmldoc.SelectSingleNode("/ROOT");
+                 if (pinNode != null)
+                 {
+                     pinNode.InnerText = "radha";
+                 }
+                 xmldoc.Save(selectedpath + dirPin);
+             }
+             else
+             {
+                 MessageBox.Show("Wrong password");
+             }
         }
     }
 }

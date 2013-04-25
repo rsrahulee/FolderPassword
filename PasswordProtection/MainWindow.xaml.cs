@@ -72,7 +72,7 @@ namespace PasswordProtection
                 XmlTextReader read = new XmlTextReader(selectedpath + dirPin);
 
                 if (read.ReadState == ReadState.Error)
-                    return true;
+                    return false;
                 else
                 {
                     try
@@ -94,7 +94,7 @@ namespace PasswordProtection
                     }
                     catch
                     {
-                        return true;
+                        return false;
                     }
                 }
                 read.Close();
